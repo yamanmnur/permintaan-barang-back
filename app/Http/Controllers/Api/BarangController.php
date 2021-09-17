@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
+use App\Models\Barang\Barang;
 use Illuminate\Http\Request;
 
-class ApiBarangController extends Controller
+class BarangController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -13,7 +15,18 @@ class ApiBarangController extends Controller
      */
     public function index()
     {
-        //
+        $data = Barang::select(
+            'id',
+            'kode',
+            'nama',
+            'kuantiti',
+            'lokasi',
+            'status',
+        )->orderBy('created_at','desc')->get();
+
+        return [
+            'data' => $data
+        ];
     }
 
     /**
