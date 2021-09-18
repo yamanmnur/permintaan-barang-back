@@ -3,15 +3,22 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Services\Barang\PermintaanService;
 use App\Models\Barang\Barang;
 use App\Models\Permintaan\DetailPermintaan;
 use App\Models\Permintaan\Permintaan;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Ramsey\Uuid\Uuid;
 
 class PermintaanController extends Controller
 {
+    protected $permintaanService;
+
+    public function __construct(PermintaanService $permintaanService) {
+        $this->permintaanService = $permintaanService;
+    }
     /**
      * Display a listing of the resource.
      *
@@ -19,18 +26,18 @@ class PermintaanController extends Controller
      */
     public function index()
     {
-       $data = Permintaan::select(
-        'dat_permintaan.id',
-        'dat_permintaan.kode',
-        'dat_permintaan.id_user',
-        'dat_permintaan.tanggal_permintaan',
-        'users.name as nama_user'
-        )->join('users','users.id','dat_permintaan.id_user')
-        ->orderBy('dat_permintaan.created_at','desc')->get();
- 
-        return [
-            'data' => $data
-        ];
+        $result = ['status' => 200];
+
+        try {
+            $result['data'] = $this->permintaanService->getAll();
+        } catch (Exception $e) {
+            $result = [
+                'status' => 500,
+                'error' => $e->getMessage()
+            ];
+        }
+
+        return response()->json($result, $result['status']);
     }
 
     /**
@@ -108,17 +115,18 @@ class PermintaanController extends Controller
      */
     public function show($id)
     {
-        $data = Permintaan::with('detailPermintaan')->where('id',$id)->first();
+        $result = ['status' => 200];
 
-        if(!$data) {
-            return [
-                'status' => false
+        try {
+            $result['data'] = $this->permin->getById($id);
+        } catch(Exception $e) {
+            $result = [
+                'status' => 500,
+                'error' => $e->getMessage()
             ];
         }
 
-        return [
-            'data' => $data
-        ];
+        return response()->json($result, $result['status']);
     }
 
     /**
