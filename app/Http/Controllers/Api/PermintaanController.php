@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Services\Barang\PermintaanService;
+use App\Http\Services\Permintaan\PermintaanService;
 use App\Models\Barang\Barang;
 use App\Models\Permintaan\DetailPermintaan;
 use App\Models\Permintaan\Permintaan;
@@ -85,7 +85,13 @@ class PermintaanController extends Controller
 
         $dataPermintaan = [];
 
-        foreach ($request->dat_detail_permintaan as $value) {
+        foreach ($request->items as $value) {
+            $barang = Barang::where('id',$value['id_barang'])->first();
+            if($barang) {
+                Barang::where('id',$value['id_barang'])->update([
+                    'kuantiti' => $barang->kuantiti - $value['kuantiti']
+                ]); 
+            }
             array_push($dataPermintaan,[
                 'id' => Uuid::uuid4()->toString(),
                 'id_permintaan' => $permintaan->id,
@@ -118,7 +124,7 @@ class PermintaanController extends Controller
         $result = ['status' => 200];
 
         try {
-            $result['data'] = $this->permin->getById($id);
+            $result['data'] = $this->permintaanService->getById($id);
         } catch(Exception $e) {
             $result = [
                 'status' => 500,
@@ -192,6 +198,24 @@ class PermintaanController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $permintaan = Permintaan::where('id',$id)->first();
+
+        $permintaan->delete();
+
+        $dataDetail = DetailPermintaan::where('id_permintaan',$id)->get();
+
+        foreach ($dataDetail as $key => $value) {
+            $barang = Barang::where('id',$value->id_barang)->first();
+
+            if($barang) {
+                Barang::where('id',$value->id_barang)->update([
+                    'kuantiti' => $barang->kuantiti + $value->kuantiti
+                ]);
+            }
+        }
+
+        return [
+            'status' => true
+        ];
     }
 }

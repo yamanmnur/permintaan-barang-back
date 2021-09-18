@@ -22,15 +22,25 @@ class UserController extends Controller
         ];
     }
 
+    public function cekBearer() {
+        return [
+            'status' => 'success'
+        ];
+    }
+
     public function login(){
         if(Auth::attempt(['email' => request('email'), 'password' => request('password')])){
             $user = Auth::user();
             $token = $user->createToken(uniqid())->accessToken;
 
             $data_token = [
-                'token'    => $token
+                'accessToken'    => $token,
+                'name'    => $user->nama_lengkap,
+                'email'    => $user->email,
+                'tokenType'    => $user->bearer,
+                'userId'    => $user->id_user,
             ];            
-            return response()->json(['success' => $data_token], $this->successStatus);
+            return response()->json($data_token, $this->successStatus);
         }
         else{
             return response()->json(['error'=>'Unauthorised'], 401);
@@ -67,6 +77,19 @@ class UserController extends Controller
                 'message' => 'Successfully logged out'
             ]);
         }
+    }
+
+    public function getAllUser() {
+        $user = User::select(
+            'id',
+            'name',
+            'nik',
+            'departement'
+        )->get();
+
+        return [
+            'user' => $user
+        ];
     }
 
     public function details()

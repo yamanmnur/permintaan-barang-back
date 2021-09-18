@@ -29,6 +29,7 @@ class BarangRepository implements BarangInterface {
             'nama',
             'kuantiti',
             'lokasi',
+            'satuan',
             'status',
         )->orderBy('created_at','desc')->get();
     }
@@ -40,6 +41,7 @@ class BarangRepository implements BarangInterface {
             'nama',
             'kuantiti',
             'lokasi',
+            'satuan',
             'status',
         )->where('id',$id)->first();
     }

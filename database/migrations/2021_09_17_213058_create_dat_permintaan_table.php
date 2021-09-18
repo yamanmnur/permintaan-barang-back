@@ -18,7 +18,7 @@ class CreateDatPermintaanTable extends Migration
             $table->string('kode',20);
             $table->string('id_user',36);
             $table->date('tanggal_permintaan');
-            $table->string('status',2);
+            $table->string('status',2)->nullable();
             $table->string('created_by',36)->nullable();
             $table->string('updated_by',36)->nullable();
             $table->string('deleted_by',36)->nullable();

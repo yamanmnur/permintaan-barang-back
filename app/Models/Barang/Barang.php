@@ -18,6 +18,7 @@ class Barang extends Model
        'nama',
        'kuantiti',
        'lokasi',
+       'satuan',
        'status',
        'created_at',
        'updated_at',

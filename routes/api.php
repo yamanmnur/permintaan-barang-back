@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\BarangController;
+use App\Http\Controllers\Api\PermintaanController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -17,6 +19,10 @@ use Illuminate\Support\Facades\Route;
 Route::post('login', [UserController::class,'login']);
 
 Route::group(['middleware' => 'auth:api'], function(){
-    Route::get('user/detail', 'Api\UserController@details');
-    Route::post('logout', 'Api\UserController@logout');
+    Route::get('users', [UserController::class,'getAllUser']);
+    Route::get('cek-bearer', [UserController::class,'cekBearer']);
+
+    Route::resource('permintaan', PermintaanController::class);
+    Route::resource('barang', BarangController::class);
+
 }); 

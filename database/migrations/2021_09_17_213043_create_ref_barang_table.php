@@ -20,6 +20,7 @@ class CreateRefBarangTable extends Migration
             $table->bigInteger('kuantiti',false);
             $table->text('lokasi');
             $table->string('status',2);
+            $table->string('satuan',200);
             $table->string('created_by',36)->nullable();
             $table->string('updated_by',36)->nullable();
             $table->string('deleted_by',36)->nullable();

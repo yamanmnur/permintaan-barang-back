@@ -34,6 +34,7 @@ class BarangSeeder extends Seeder
                 'kuantiti' => 10,
                 'lokasi' => 'L1-R1A-'.$i,
                 'status' => '1',
+                'satuan' => 'PAK',
                 'created_at' => date('Y-m-d h:i:s'),
                 'updated_at' => date('Y-m-d h:i:s'),
             ]);

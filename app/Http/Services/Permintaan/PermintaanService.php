@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Http\Services\Barang;
+namespace App\Http\Services\Permintaan;
 
 use App\Http\Repositories\Permintaan\PermintaanRepository;
 use App\Models\Permintaan\DetailPermintaan;
-use App\Repositories\PostRepository;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
