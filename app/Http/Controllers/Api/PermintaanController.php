@@ -58,58 +58,9 @@ class PermintaanController extends Controller
      */
     public function store(Request $request)
     {
-        $data_exist = Permintaan::selectRaw('max(right(kode, 5)) as kode')->first();
-
-        if (! $data_exist->kode) {
-            $kode = 'KD-00001';
-        } else {
-            $pertama = $data_exist->kode;
-            $int = (int) $pertama;
-            $jumlah = $int  + 100001;
-            $hasil = substr($jumlah,1);
-            $kode = 'KD-'.$hasil;
-        }
-
-        $permintaan = new Permintaan();
-
-        $permintaan->id = Uuid::uuid4()->toString();
-        $permintaan->kode = $kode;
-        $permintaan->id_user = $request->id_user;
-        $permintaan->tanggal_permintaan = $request->tanggal_permintaan;
-        $permintaan->created_at = date('Y-m-d H:i:s');
-        $permintaan->updated_at = date('Y-m-d H:i:s');
-        $permintaan->created_by = Auth::user()->id;
-        $permintaan->updated_by = Auth::user()->id;
-
-        $permintaan->save();
-
-        $dataPermintaan = [];
-
-        foreach ($request->items as $value) {
-            $barang = Barang::where('id',$value['id_barang'])->first();
-            if($barang) {
-                Barang::where('id',$value['id_barang'])->update([
-                    'kuantiti' => $barang->kuantiti - $value['kuantiti']
-                ]); 
-            }
-            array_push($dataPermintaan,[
-                'id' => Uuid::uuid4()->toString(),
-                'id_permintaan' => $permintaan->id,
-                'id_barang' => $value['id_barang'],
-                'kuantiti' => $value['kuantiti'],
-                'status' => $value['status'],
-                'keterangan' => $value['keterangan'],
-                'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s'),
-                'created_by' => Auth::user()->id,
-                'updated_by' => Auth::user()->id
-            ]);
-        }
-
-        DetailPermintaan::insert($dataPermintaan);
-
         return [
-            'status' => true
+            'status' => true,
+            'data' => $this->permintaanService->savePostData($request)
         ];
     }
 
@@ -145,6 +96,9 @@ class PermintaanController extends Controller
     {
         //
     }
+    public function update(Request $request,$id) {
+
+    }
 
     /**
      * Update the specified resource in storage.
@@ -153,9 +107,9 @@ class PermintaanController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function updatePost(Request $request)
     {
-        $permintaan = Permintaan::where('id',$id)->first();
+        $permintaan = Permintaan::where('id',$request->id)->first();
 
         $permintaan->id_user = $request->id_user;
         $permintaan->tanggal_permintaan = $request->tanggal_permintaan;
@@ -166,24 +120,74 @@ class PermintaanController extends Controller
 
         $permintaan->save();
 
-        $dataPermintaan = [];
-
-        foreach ($request->dat_detail_permintaan as $value) {
-            array_push($dataPermintaan,[
-                'id' => Uuid::uuid4()->toString(),
-                'id_permintaan' => $permintaan->id,
-                'id_barang' => $value['id_barang'],
-                'kuantiti' => $value['kuantiti'],
-                'status' => $value['status'],
-                'keterangan' => $value['keterangan'],
-                'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s'),
-                'created_by' => Auth::user()->id,
-                'updated_by' => Auth::user()->id
-            ]);
+        foreach ($request->deleted_items as $key => $value) {
+            # code...
+            $barang = Barang::where('id',$value['id_barang'])->first();
+            if($barang) {
+                Barang::where('id',$value['id_barang'])->update([
+                    'kuantiti' => $barang->kuantiti + $value['kuantiti']
+                ]);
+            }
+            DetailPermintaan::where('id',$value['id'])->delete();
         }
 
-        DetailPermintaan::insert($dataPermintaan);
+        foreach ($request->items as $value) {
+            if($value['id'] == '') {
+                $barang = Barang::where('id',$value['id_barang'])->first();
+                if($barang) {
+                    if($barang->kuantiti < $value['kuantiti']) {
+                        Barang::where('id',$value['id_barang'])->update([
+                            'kuantiti' => $barang->kuantiti - $value['kuantiti']
+                        ]);
+                    }
+                }
+                DetailPermintaan::insert([
+                    'id' => Uuid::uuid4()->toString(),
+                    'id_permintaan' => $permintaan->id,
+                    'id_barang' => $value['id_barang'],
+                    'kuantiti' => $value['kuantiti'],
+                    'status' => $value['status'],
+                    'keterangan' => $value['keterangan'],
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                    'created_by' => Auth::user()->id,
+                    'updated_by' => Auth::user()->id
+                ]);
+            } else {
+                $detail = DetailPermintaan::where('id',$value['id'])->first();
+                if($detail) {
+                    $barang = Barang::where('id',$value['id_barang'])->first();
+                    if($detail['kuantiti'] < $value['kuantiti']) {
+                        if($barang) {
+                            if($barang->kuantiti < $value['kuantiti']) {
+                                Barang::where('id',$value['id_barang'])->update([
+                                    'kuantiti' => $barang->kuantiti - $value['kuantiti']
+                                ]);
+                            }
+                        }
+                    } else if($detail['kuantiti'] > $value['kuantiti']) {
+                        if($barang) {
+                            if($barang->kuantiti < $value['kuantiti']) {
+                                Barang::where('id',$value['id_barang'])->update([
+                                    'kuantiti' => $barang->kuantiti + $value['kuantiti']
+                                ]);
+                            }
+                        }
+                    }
+                }
+                DetailPermintaan::where('id',$value['id'])->update([
+                    'id_barang' => $value['id_barang'],
+                    'kuantiti' => $value['kuantiti'],
+                    'status' => $value['status'],
+                    'keterangan' => $value['keterangan'],
+                    'updated_at' => date('Y-m-d H:i:s'),
+                    'updated_by' => Auth::user()->id
+                ]);
+            }
+
+        }
+
+        // insert($dataPermintaan);
 
         return [
             'status' => true

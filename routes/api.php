@@ -22,7 +22,8 @@ Route::group(['middleware' => 'auth:api'], function(){
     Route::get('users', [UserController::class,'getAllUser']);
     Route::get('cek-bearer', [UserController::class,'cekBearer']);
 
+    Route::put("update-permintaan",[PermintaanController::class,'updatePost']);
     Route::resource('permintaan', PermintaanController::class);
     Route::resource('barang', BarangController::class);
 
-}); 
+});
